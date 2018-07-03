@@ -1,22 +1,22 @@
 package com.random.number;
 
+import java.awt.Color;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 import java.awt.event.ActionEvent;
 import javax.swing.JLabel;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
-import javax.swing.JPanel;
 import java.awt.Font;
 
 public class NumberMainView {
@@ -25,7 +25,7 @@ public class NumberMainView {
 	private JTextField textField_numberCount;
 	private JScrollPane jPanel_scrollRandomNum;
 	private JScrollPane jPanel_scrollInputNum;
-	private JScrollPane jPanel_scrollCompareNum;
+	private JScrollPane jPanel_compare;
 	private JButton btnStartMemorize;
 	private JLabel lblDisplayTheRandom;
 	private JLabel lblInputYourMemorized;
@@ -34,14 +34,15 @@ public class NumberMainView {
 	private JLabel label_timeCost;
 	private JButton btnCompareResult;
 	private JTextArea textArea_inputNum;
-	private JTextArea textArea_compare;
 	private JTextArea textArea_randomNum;
+	private JTextPane textPane_compare;	
 	
 	private int numberCount;
 	private String randomNum;
 	private long startTime;
-	private long endTime;
-	private JLabel lblTest;
+	private long endTime;	
+	private StringBuilder matchedStringBuilder;
+	private StringBuilder unmatchedStringBuilder;
 
 	/**
 	 * Launch the application.
@@ -78,23 +79,29 @@ public class NumberMainView {
 		JButton btnGenerateRandomNumber = new JButton("Generate");
 		btnGenerateRandomNumber.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				numberCount = Integer.parseInt(textField_numberCount.getText().trim()); 
-				if(numberCount != 0) {
-					generateRandomNum();
-					textArea_randomNum.setText(randomNum);
-					startTime = System.currentTimeMillis();
-				}
+				String countStr = textField_numberCount.getText().trim();
+				if(countStr.length() > 0) {
+					numberCount = Integer.parseInt(countStr); 
+					if(numberCount > 0) {
+						generateRandomNum();
+						textArea_randomNum.setText(randomNum);
+						startTime = System.currentTimeMillis();
+					}
+				}		
+				textArea_inputNum.setEditable(false);
+				textArea_inputNum.setText("");
+				textPane_compare.setText("");
 			}
 		});
-		btnGenerateRandomNumber.setBounds(581, 160, 138, 29);
+		btnGenerateRandomNumber.setBounds(588, 193, 138, 29);
 		frame.getContentPane().add(btnGenerateRandomNumber);								
 		
 		JLabel lblNumberCount = new JLabel("number count:");
-		lblNumberCount.setBounds(324, 165, 99, 16);
+		lblNumberCount.setBounds(325, 198, 99, 16);
 		frame.getContentPane().add(lblNumberCount);
 		
 		textField_numberCount = new JTextField();
-		textField_numberCount.setBounds(435, 162, 100, 22);
+		textField_numberCount.setBounds(436, 195, 100, 22);
 		frame.getContentPane().add(textField_numberCount);
 		textField_numberCount.setColumns(10);
 		
@@ -102,10 +109,12 @@ public class NumberMainView {
 		btnStartMemorize.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				textArea_randomNum.setText("");
+				textField_numberCount.setText("");
+				textArea_inputNum.setEditable(true);
 				endTime = System.currentTimeMillis();
 			}
 		});
-		btnStartMemorize.setBounds(742, 160, 138, 29);
+		btnStartMemorize.setBounds(742, 193, 138, 29);
 		frame.getContentPane().add(btnStartMemorize);
 		
 		lblDisplayTheRandom = new JLabel("Display the random number:");
@@ -113,11 +122,11 @@ public class NumberMainView {
 		frame.getContentPane().add(lblDisplayTheRandom);
 		
 		lblInputYourMemorized = new JLabel("Input your memorized number:");
-		lblInputYourMemorized.setBounds(25, 188, 254, 16);
+		lblInputYourMemorized.setBounds(27, 217, 254, 16);
 		frame.getContentPane().add(lblInputYourMemorized);
 		
 		lblResultComparison = new JLabel("Result Comparison:");
-		lblResultComparison.setBounds(25, 349, 211, 16);
+		lblResultComparison.setBounds(25, 406, 211, 16);
 		frame.getContentPane().add(lblResultComparison);
 		
 		lblCostTime = new JLabel("Cost Time:");
@@ -132,44 +141,46 @@ public class NumberMainView {
 		btnCompareResult.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				String inputNumber = textArea_inputNum.getText().trim();
-				String compareRes = compareNumber(inputNumber, randomNum);
-				textArea_compare.setText(compareRes);
+				compareNumber(inputNumber, randomNum);
 				String timeCost = calculateTimeCost();
 				label_timeCost.setText(timeCost);
 			}
 		});
-		btnCompareResult.setBounds(742, 327, 138, 29);
+		btnCompareResult.setBounds(742, 382, 138, 29);
 		frame.getContentPane().add(btnCompareResult);
 		
 		
 		textArea_inputNum = new JTextArea();		
 		textArea_inputNum.setFont(new Font("Lucida Grande", Font.PLAIN, 20));
+		textArea_inputNum.setEditable(false);
 		textArea_inputNum.setLineWrap(true);
 		jPanel_scrollInputNum = new JScrollPane(textArea_inputNum);
-		jPanel_scrollInputNum.setBounds(25, 215, 855, 100);
-		frame.getContentPane().add(jPanel_scrollInputNum);				
-		
-		textArea_compare = new JTextArea();						
-		textArea_compare.setFont(new Font("Lucida Grande", Font.PLAIN, 20));
-		textArea_compare.setLineWrap(true);
-		textArea_compare.setEditable(false);
-		jPanel_scrollCompareNum = new JScrollPane(textArea_compare);
-		jPanel_scrollCompareNum.setBounds(25, 380, 855, 143);
-		frame.getContentPane().add(jPanel_scrollCompareNum);		
+		jPanel_scrollInputNum.setBounds(25, 245, 855, 130);
+		frame.getContentPane().add(jPanel_scrollInputNum);
 		
 		textArea_randomNum = new JTextArea();	
 		textArea_randomNum.setFont(new Font("Lucida Grande", Font.PLAIN, 20));
 		textArea_randomNum.setLineWrap(true);
 		textArea_randomNum.setEditable(false);
 		jPanel_scrollRandomNum = new JScrollPane(textArea_randomNum);		
-		jPanel_scrollRandomNum.setBounds(25, 53, 855, 100);
-		frame.getContentPane().add(jPanel_scrollRandomNum);										
+		jPanel_scrollRandomNum.setBounds(25, 53, 855, 130);
+		frame.getContentPane().add(jPanel_scrollRandomNum);														
 		
-		lblTest = new JLabel("<html><center><font color=#ff0000>middle button</font>");
-		Font font = lblTest.getFont().deriveFont(Font.PLAIN);
-		lblTest.setFont(font);
-		lblTest.setBounds(25, 535, 241, 37);
-		frame.getContentPane().add(lblTest);
+		textPane_compare = new JTextPane() {
+			@Override
+		    public boolean getScrollableTracksViewportWidth() {
+		        return getUI().getPreferredSize(this).width
+		                        <= getParent().getSize().width;
+		    }
+		};
+		textPane_compare.setFont(new Font("Monospaced", Font.PLAIN, 13));
+		textPane_compare.setEditable(false);
+		jPanel_compare = new JScrollPane(textPane_compare);		
+		jPanel_compare.setBounds(25, 434, 855, 83);		
+		frame.getContentPane().add(jPanel_compare);
+		
+		
+		
 	}
 	
 	public String calculateTimeCost() {
@@ -185,10 +196,63 @@ public class NumberMainView {
 		return timeRes;		
 	}
 	
-	public String compareNumber(String actualNum, String expectedNum) {
-		//String a = actualNum+"\n"+expectedNum;
-		String a = "<html><center><font color=#ff0000>middle button</font>";
-		return a;
+	public void displayNum(StyledDocument doc, Style style, boolean matchedSb, String addedNum, Color color) {
+		if(matchedSb) {
+			if(matchedStringBuilder.length() > 0) {
+				try {
+					StyleConstants.setForeground(style, color);					
+					doc.insertString(doc.getLength(), matchedStringBuilder.toString() ,style);	
+					matchedStringBuilder = new StringBuilder();
+				} catch (BadLocationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}
+			unmatchedStringBuilder.append(addedNum).append(" ");
+		}else {
+			if(unmatchedStringBuilder.length() > 0) {
+				try {
+					StyleConstants.setForeground(style, color);												
+					doc.insertString(doc.getLength(), unmatchedStringBuilder.toString() ,style);	
+					unmatchedStringBuilder = new StringBuilder();
+				} catch (BadLocationException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}				
+			}
+			matchedStringBuilder.append(addedNum).append(" ");
+		}		                          
+	}
+	
+	public void compareNumber(String actualNum, String expectedNum) {
+		StyledDocument doc = textPane_compare.getStyledDocument();
+		Style style = textPane_compare.addStyle("Style", null);
+		
+		String[] expectedArr = expectedNum.split(" ");		
+		String[] actualArr = new String[actualNum.length()];
+		int index = 0;
+		for(char charVal : actualNum.toCharArray()) {
+			actualArr[index++] = String.valueOf(charVal); 
+		}
+		int numLength = Math.min(actualArr.length, expectedArr.length);
+		
+		matchedStringBuilder = new StringBuilder();
+		unmatchedStringBuilder = new StringBuilder();
+		
+		matchedStringBuilder.append(expectedNum).append("\n");
+		
+		for(int i=0; i<numLength; i++) {
+			if(actualArr[i].equals(expectedArr[i])) {
+				displayNum(doc, style, false, actualArr[i], Color.RED);
+			}else {
+				displayNum(doc, style, true, actualArr[i], Color.BLACK);
+			}
+		}
+		if(matchedStringBuilder.length() > 0) {
+			displayNum(doc, style, true, "", Color.BLACK);
+		}else {
+			displayNum(doc, style, false, "", Color.RED);
+		}
 	}
 	
 	public void generateRandomNum() {		
