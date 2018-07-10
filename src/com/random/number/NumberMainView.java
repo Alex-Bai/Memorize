@@ -12,12 +12,17 @@ import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import javax.swing.JButton;
+
 import java.awt.event.ActionListener;
 import java.util.Random;
 import java.awt.event.ActionEvent;
+
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
+
 import java.awt.Font;
+
+import javax.swing.JComboBox;
 
 public class NumberMainView {
 
@@ -43,7 +48,14 @@ public class NumberMainView {
 	private long endTime;	
 	private StringBuilder matchedStringBuilder;
 	private StringBuilder unmatchedStringBuilder;
+	private JComboBox comboBox_year;
+	private JComboBox comboBox_month;
+	private String selectedYear;
+	private String selectedMonth;
 
+	private String[] years = new String[]{"2018", "2019"};
+	private String[] months = new String[]{"01","02","03","04","05","06","07","08","09","10","11","12"};
+	
 	/**
 	 * Launch the application.
 	 */
@@ -72,7 +84,7 @@ public class NumberMainView {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 900, 600);
+		frame.setBounds(100, 100, 920, 675);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
@@ -130,11 +142,11 @@ public class NumberMainView {
 		frame.getContentPane().add(lblResultComparison);
 		
 		lblCostTime = new JLabel("Cost Time:");
-		lblCostTime.setBounds(732, 535, 73, 16);
+		lblCostTime.setBounds(25, 526, 73, 16);
 		frame.getContentPane().add(lblCostTime);
 		
 		label_timeCost = new JLabel("00:00:000");
-		label_timeCost.setBounds(807, 535, 73, 16);
+		label_timeCost.setBounds(93, 526, 73, 16);
 		frame.getContentPane().add(label_timeCost);
 		
 		btnCompareResult = new JButton("Compare Result");
@@ -178,6 +190,43 @@ public class NumberMainView {
 		jPanel_compare = new JScrollPane(textPane_compare);		
 		jPanel_compare.setBounds(25, 434, 855, 83);		
 		frame.getContentPane().add(jPanel_compare);
+		
+		
+		comboBox_year = new JComboBox(years);
+		comboBox_year.setSelectedIndex(0);
+		selectedYear = (String) comboBox_year.getSelectedItem();
+		comboBox_year.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				selectedYear = (String) ((JComboBox)e.getSource()).getSelectedItem();
+			}
+		});
+		comboBox_year.setBounds(588, 559, 66, 19);
+		frame.getContentPane().add(comboBox_year);
+		
+		comboBox_month = new JComboBox(months);
+		comboBox_month.setSelectedIndex(0);
+		selectedMonth = (String) comboBox_month.getSelectedItem();
+		comboBox_month.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				selectedMonth = (String) ((JComboBox)e.getSource()).getSelectedItem();
+			}
+		});
+		comboBox_month.setBounds(666, 559, 66, 19);
+		frame.getContentPane().add(comboBox_month);
+		
+		JLabel lblShowChartLine = new JLabel("Show Chart Line:");
+		lblShowChartLine.setBounds(468, 559, 125, 18);
+		frame.getContentPane().add(lblShowChartLine);
+		
+		JButton btnChartLine = new JButton("Chart Line");
+		btnChartLine.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.out.println("output selected year and selected month: "+selectedYear+"/"+selectedMonth);
+				new LineChartView(selectedYear, selectedMonth);
+			}
+		});
+		btnChartLine.setBounds(773, 556, 97, 25);
+		frame.getContentPane().add(btnChartLine);
 		
 		
 		

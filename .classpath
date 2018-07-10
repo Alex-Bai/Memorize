@@ -15,5 +15,7 @@
 	<classpathentry kind="lib" path="lib/poi-scratchpad-3.17.jar"/>
 	<classpathentry kind="lib" path="lib/curvesapi-1.04.jar"/>
 	<classpathentry kind="lib" path="lib/xmlbeans-2.6.0.jar"/>
+	<classpathentry kind="lib" path="lib/jcommon-1.0.23.jar"/>
+	<classpathentry kind="lib" path="lib/jfreechart-1.0.19.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
