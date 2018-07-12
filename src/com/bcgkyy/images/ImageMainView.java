@@ -225,7 +225,7 @@ public class ImageMainView {
 	private ImageIcon getScaledImage(String imagePath, int w, int h){				 
 		try {
 			//Image srcImg = ImageIO.read(this.getClass().getResource(imagePath));
-			Image srcImg = ImageIO.read(new File(imagePath));
+			Image srcImg = ImageIO.read(new File(imagePath));			
 			BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2 = resizedImg.createGraphics();
 
