@@ -63,8 +63,7 @@ public class NumberMainView {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					NumberMainView window = new NumberMainView();
-					window.frame.setVisible(true);
+					new NumberMainView();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -84,8 +83,7 @@ public class NumberMainView {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 920, 675);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setBounds(100, 100, 820, 675);		
 		frame.getContentPane().setLayout(null);
 		
 		JButton btnGenerateRandomNumber = new JButton("Generate");
@@ -105,15 +103,15 @@ public class NumberMainView {
 				textPane_compare.setText("");
 			}
 		});
-		btnGenerateRandomNumber.setBounds(588, 193, 138, 29);
+		btnGenerateRandomNumber.setBounds(492, 193, 138, 29);
 		frame.getContentPane().add(btnGenerateRandomNumber);								
 		
 		JLabel lblNumberCount = new JLabel("number count:");
-		lblNumberCount.setBounds(325, 198, 99, 16);
+		lblNumberCount.setBounds(269, 198, 99, 16);
 		frame.getContentPane().add(lblNumberCount);
 		
 		textField_numberCount = new JTextField();
-		textField_numberCount.setBounds(436, 195, 100, 22);
+		textField_numberCount.setBounds(380, 195, 100, 22);
 		frame.getContentPane().add(textField_numberCount);
 		textField_numberCount.setColumns(10);
 		
@@ -126,7 +124,7 @@ public class NumberMainView {
 				endTime = System.currentTimeMillis();
 			}
 		});
-		btnStartMemorize.setBounds(742, 193, 138, 29);
+		btnStartMemorize.setBounds(657, 193, 138, 29);
 		frame.getContentPane().add(btnStartMemorize);
 		
 		lblDisplayTheRandom = new JLabel("Display the random number:");
@@ -158,7 +156,7 @@ public class NumberMainView {
 				label_timeCost.setText(timeCost);
 			}
 		});
-		btnCompareResult.setBounds(742, 382, 138, 29);
+		btnCompareResult.setBounds(657, 387, 138, 29);
 		frame.getContentPane().add(btnCompareResult);
 		
 		
@@ -167,15 +165,15 @@ public class NumberMainView {
 		textArea_inputNum.setEditable(false);
 		textArea_inputNum.setLineWrap(true);
 		jPanel_scrollInputNum = new JScrollPane(textArea_inputNum);
-		jPanel_scrollInputNum.setBounds(25, 245, 855, 130);
+		jPanel_scrollInputNum.setBounds(25, 245, 770, 130);
 		frame.getContentPane().add(jPanel_scrollInputNum);
 		
-		textArea_randomNum = new JTextArea();	
+		textArea_randomNum = new JTextArea();		
 		textArea_randomNum.setFont(new Font("Lucida Grande", Font.PLAIN, 20));
 		textArea_randomNum.setLineWrap(true);
 		textArea_randomNum.setEditable(false);
 		jPanel_scrollRandomNum = new JScrollPane(textArea_randomNum);		
-		jPanel_scrollRandomNum.setBounds(25, 53, 855, 130);
+		jPanel_scrollRandomNum.setBounds(25, 53, 770, 130);
 		frame.getContentPane().add(jPanel_scrollRandomNum);														
 		
 		textPane_compare = new JTextPane() {
@@ -188,7 +186,7 @@ public class NumberMainView {
 		textPane_compare.setFont(new Font("Monospaced", Font.PLAIN, 13));
 		textPane_compare.setEditable(false);
 		jPanel_compare = new JScrollPane(textPane_compare);		
-		jPanel_compare.setBounds(25, 434, 855, 83);		
+		jPanel_compare.setBounds(25, 434, 770, 83);		
 		frame.getContentPane().add(jPanel_compare);
 		
 		
@@ -200,7 +198,7 @@ public class NumberMainView {
 				selectedYear = (String) ((JComboBox)e.getSource()).getSelectedItem();
 			}
 		});
-		comboBox_year.setBounds(588, 559, 66, 19);
+		comboBox_year.setBounds(497, 559, 99, 19);
 		frame.getContentPane().add(comboBox_year);
 		
 		comboBox_month = new JComboBox(months);
@@ -211,11 +209,11 @@ public class NumberMainView {
 				selectedMonth = (String) ((JComboBox)e.getSource()).getSelectedItem();
 			}
 		});
-		comboBox_month.setBounds(666, 559, 66, 19);
+		comboBox_month.setBounds(620, 559, 66, 19);
 		frame.getContentPane().add(comboBox_month);
 		
 		JLabel lblShowChartLine = new JLabel("Show Chart Line:");
-		lblShowChartLine.setBounds(468, 559, 125, 18);
+		lblShowChartLine.setBounds(379, 558, 125, 18);
 		frame.getContentPane().add(lblShowChartLine);
 		
 		JButton btnChartLine = new JButton("Chart Line");
@@ -225,10 +223,10 @@ public class NumberMainView {
 				new LineChartView(selectedYear, selectedMonth);
 			}
 		});
-		btnChartLine.setBounds(773, 556, 97, 25);
+		btnChartLine.setBounds(698, 556, 97, 25);
 		frame.getContentPane().add(btnChartLine);
 		
-		
+		frame.setVisible(true);
 		
 	}
 	

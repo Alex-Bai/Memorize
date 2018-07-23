@@ -1,6 +1,7 @@
 package com.bcgkyy.images;
 
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -19,12 +21,13 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 import com.bcgkyy.db.DBManagement;
 import com.bcgkyy.demo.NumberImage;
-import javax.swing.JTextField;
 
-public class ImageMainView {
+public class ImageMainView{
 
 	private JFrame frame;
 	private String dbTableName = "imageNumber.xlsx";
@@ -45,6 +48,8 @@ public class ImageMainView {
 	private JTextField textField_leftSearch;
 	private JTextField textField_rightSearch;
 	private JButton btnRightSearch;
+	
+	private Random random;
 
 	/**
 	 * Launch the application.
@@ -53,10 +58,7 @@ public class ImageMainView {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					ImageMainView window = new ImageMainView();
-					window.readImagesFromDB();
-					window.initialize();
-					window.frame.setVisible(true);
+					new ImageMainView();					
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -67,6 +69,8 @@ public class ImageMainView {
 	public ImageMainView() {
 		dbManagement = new DBManagement(dbTableName, dbSheetName);
 		numberImages = new LinkedList<NumberImage>();
+		readImagesFromDB();
+		initialize();		
 	}
 	
 	/**
@@ -84,10 +88,10 @@ public class ImageMainView {
 	 */
 	private void initialize() {
 		numberImages = readImagesFromDB();
+		random = new Random();
 		
 		frame = new JFrame();
 		frame.setBounds(100, 100, 1000, 700);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(null);
 		
 		
@@ -102,7 +106,7 @@ public class ImageMainView {
 				
 			}
 		});
-		btnPre_image1.setBounds(120, 560, 117, 29);
+		btnPre_image1.setBounds(40, 628, 117, 29);
 		frame.getContentPane().add(btnPre_image1);
 		
 		JButton btnNext_image1 = new JButton("next");
@@ -112,7 +116,7 @@ public class ImageMainView {
 				setImageAndNumber(numberImage.getUrls(), numberImage.getNumber(), leftImageIndex, true);
 			}
 		});
-		btnNext_image1.setBounds(288, 560, 117, 29);
+		btnNext_image1.setBounds(215, 628, 117, 29);
 		frame.getContentPane().add(btnNext_image1);
 		
 		JButton btnPre_image2 = new JButton("pre");
@@ -125,7 +129,7 @@ public class ImageMainView {
 				setImageAndNumber(numberImage.getUrls(), numberImage.getNumber(), rightImageIndex, false);
 			}
 		});
-		btnPre_image2.setBounds(596, 560, 117, 29);
+		btnPre_image2.setBounds(522, 628, 117, 29);
 		frame.getContentPane().add(btnPre_image2);
 		
 		JButton btnNext_image2 = new JButton("next");
@@ -135,7 +139,7 @@ public class ImageMainView {
 				setImageAndNumber(numberImage.getUrls(), numberImage.getNumber(), rightImageIndex, false);		
 			}
 		});
-		btnNext_image2.setBounds(764, 560, 117, 29);
+		btnNext_image2.setBounds(687, 628, 117, 29);
 		frame.getContentPane().add(btnNext_image2);
 		
 		NumberImage initialImage = numberImages.get(leftImageIndex);
@@ -149,11 +153,14 @@ public class ImageMainView {
 		frame.getContentPane().add(label_image2);		
 		
 		label_leftNumber = new JLabel(initialImage.getNumber());
-		label_leftNumber.setBounds(40, 518, 61, 16);
+		label_leftNumber.setHorizontalAlignment(SwingConstants.CENTER);
+		label_leftNumber.setFont(new Font("Lucida Grande", Font.BOLD, 99));
+		label_leftNumber.setBounds(141, 504, 265, 103);
 		frame.getContentPane().add(label_leftNumber);
 		
 		label_rightNumber = new JLabel(initialImage.getNumber());
-		label_rightNumber.setBounds(522, 518, 61, 16);
+		label_rightNumber.setFont(new Font("Lucida Grande", Font.BOLD, 99));
+		label_rightNumber.setBounds(677, 504, 253, 103);
 		frame.getContentPane().add(label_rightNumber);
 		
 		textField_leftSearch = new JTextField();
@@ -206,6 +213,30 @@ public class ImageMainView {
 		btnRightSearch.setBounds(664, 41, 117, 29);
 		frame.getContentPane().add(btnRightSearch);
 		
+		JButton btnRandomNext1 = new JButton("random next");
+		btnRandomNext1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				leftImageIndex = random.nextInt(numberImages.size());
+				NumberImage numberImage = numberImages.get(leftImageIndex);					
+				setImageAndNumber(numberImage.getUrls(), numberImage.getNumber(), leftImageIndex, true);	
+			}
+		});
+		btnRandomNext1.setBounds(372, 628, 117, 29);
+		frame.getContentPane().add(btnRandomNext1);
+		
+		JButton btnRandomNext2 = new JButton("random next");
+		btnRandomNext2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				rightImageIndex = random.nextInt(numberImages.size());
+				NumberImage numberImage = numberImages.get(rightImageIndex);					
+				setImageAndNumber(numberImage.getUrls(), numberImage.getNumber(), rightImageIndex, false);	
+			}
+		});
+		btnRandomNext2.setBounds(854, 628, 117, 29);
+		frame.getContentPane().add(btnRandomNext2);
+		
+		frame.setVisible(true);
+		
 	}		
 	
 	private void setImageAndNumber(List<String> urls, String number, int imageIndex, boolean first) {
@@ -224,7 +255,6 @@ public class ImageMainView {
 	
 	private ImageIcon getScaledImage(String imagePath, int w, int h){				 
 		try {
-			//Image srcImg = ImageIO.read(this.getClass().getResource(imagePath));
 			Image srcImg = ImageIO.read(new File(imagePath));			
 			BufferedImage resizedImg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 			Graphics2D g2 = resizedImg.createGraphics();
@@ -234,7 +264,6 @@ public class ImageMainView {
 		    g2.dispose();
 		    return new ImageIcon(resizedImg);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return null;	    

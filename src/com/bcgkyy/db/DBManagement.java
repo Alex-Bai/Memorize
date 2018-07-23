@@ -28,29 +28,44 @@ public class DBManagement {
 
 	public DBManagement() {}
 	
+	public DBManagement(String tableName) {
+		this.TABLE_NAME = tableName;
+	}
+	
 	public DBManagement(String tableName, String sheetName) {
 		this.TABLE_NAME = tableName;
 		this.SHEET_NAME = sheetName;
 	}
 	
-	public boolean fileNotExistsOrEmpty(String fileName) {
-		File newFile = new File(fileName);
+	public boolean fileNotExistsOrEmpty() {
+		File newFile = new File(TABLE_NAME);
 		try {
 			if(newFile.createNewFile() || newFile.length()==0) {
 				return true;
 			}
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	public boolean dropTable() {
+		try {
+			File file = new File(TABLE_NAME);
+			if(!fileNotExistsOrEmpty()) {
+				return file.delete();
+			}
+			return true;
+		} catch(Exception e) {
+			return false;
+		}		
 	}
 	
 	public List<String> getRecords() throws IOException {
 		
 		List<String> res = new LinkedList<String>();
 		
-		if(fileNotExistsOrEmpty(TABLE_NAME) || !openFile()) {
+		if(fileNotExistsOrEmpty() || !sheetExist()) {
 			return res;
 		}									
 		
@@ -70,7 +85,6 @@ public class DBManagement {
 			res.add(sb.toString());
 		}
 		
-		//closeFile(TABLE_NAME);
 		workbook.close();
 		
 		return res;
@@ -107,36 +121,34 @@ public class DBManagement {
 		}
 	}
 	
-	public boolean openFile() throws IOException {
-		//excelFile = getClass().getResourceAsStream(fileName);
+	public boolean sheetExist() throws IOException {
 		excelFile = new FileInputStream(TABLE_NAME);
 		workbook = new XSSFWorkbook(excelFile);
 		getSheetBasedonName();
-		if(datatypeSheet == null) {
-			datatypeSheet = workbook.createSheet(SHEET_NAME);
-			return false;
-		}
-		return true;
+		
+		return datatypeSheet != null;		
 	}
 	
-	public void closeFile() throws IOException {
-		//outputStream = new FileOutputStream(fileName);		
+	public void closeFile() throws IOException {		
 		outputStream = new FileOutputStream(TABLE_NAME);
         workbook.write(outputStream);
         workbook.close();
 	}
 	
 	public boolean insertRecord(String[] recordArr) throws IOException {		
-		boolean isNewFile = false;
-		if(fileNotExistsOrEmpty(TABLE_NAME) || !openFile()) {
-			workbook = new XSSFWorkbook();
-	        datatypeSheet = workbook.createSheet(SHEET_NAME);	
-	        isNewFile = true;
+		boolean newSheet = false;
+		if(fileNotExistsOrEmpty()) {
+			workbook = new XSSFWorkbook();        	
+			datatypeSheet = workbook.createSheet(SHEET_NAME);
+			newSheet = true;
+		}else if(!sheetExist()) {
+			datatypeSheet = workbook.createSheet(SHEET_NAME);
+			newSheet = true;
 		}
 				        		
 		int keyIndex = getIndex(datatypeSheet.rowIterator(), recordArr[0]);
 		if(keyIndex == -1) {
-			int lastRowNum = isNewFile ? -1 : datatypeSheet.getLastRowNum();			
+			int lastRowNum = newSheet ? -1 : datatypeSheet.getLastRowNum();			
 			Row currentRow = datatypeSheet.createRow(++lastRowNum);
 			
 			for(int col=0; col<recordArr.length; col++) {
@@ -151,9 +163,9 @@ public class DBManagement {
 		return true;
 	}		
 	
-	public boolean deleteRecord(String key, String fileName) throws IOException {
+	public boolean deleteRecord(String key) throws IOException {
 		
-		if(fileNotExistsOrEmpty(fileName) || !openFile()) {
+		if(fileNotExistsOrEmpty() || !sheetExist()) {
 			return false;
 		}
 		
