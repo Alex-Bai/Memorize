@@ -39,7 +39,7 @@ public class DerbyDBManagement{
         props.put("password", "user1");
     	try {
 			conn = DriverManager.getConnection(protocol + dbName + ";create=true");
-			conn.setAutoCommit(false);
+			conn.setAutoCommit(false);			
 			
 			statement = conn.createStatement();
 			statements.add(statement);
@@ -49,10 +49,14 @@ public class DerbyDBManagement{
 		}
     }
    
-    public boolean createTable(String sqlStr) {
+    public boolean createTable(String sqlStr, String tableName) {
     	try {
-			boolean res = statement.execute(sqlStr);
-			conn.commit();
+    		resultSet = conn.getMetaData().getTables(null, conn.getSchema(), tableName.toUpperCase(), null);
+    		boolean res = true;
+    		if(!resultSet.next()) {
+    			res = statement.execute(sqlStr);
+    			conn.commit();
+    		}						
 			return res;
 		} catch (SQLException e) {
 			e.printStackTrace();
