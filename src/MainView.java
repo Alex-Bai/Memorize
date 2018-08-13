@@ -7,8 +7,6 @@ import com.bcgkyy.images.ImageMainView;
 import com.random.number.NumberMainView;
 
 import javax.swing.JButton;
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 

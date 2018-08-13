@@ -174,11 +174,21 @@ public class DBManagement {
 			closeFile();
 			return false;
 		}
-		
-		datatypeSheet.removeRow(datatypeSheet.getRow(rowIndex));
+		Row row = datatypeSheet.getRow(rowIndex);
+		datatypeSheet.removeRow(row);
 		
 		closeFile();
 		return true;
+	}
+	
+	public boolean updateRecord(String record) throws IOException {
+		if(fileNotExistsOrEmpty() || !sheetExist()) {
+			return false;
+		}
+		String[] recordArr = record.split(",");
+		String key = recordArr[0];
+		
+		return deleteRecord(key) && insertRecord(recordArr);		
 	}
 	
 	public static void main(String[] args) {		

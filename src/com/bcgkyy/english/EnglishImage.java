@@ -11,6 +11,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -25,8 +26,10 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
-import com.bcgkyy.db.DBManagement;
+import com.bcgkyy.db.DerbyDBManagement;
 
 public class EnglishImage {
 
@@ -36,16 +39,14 @@ public class EnglishImage {
 	private JButton btnPre;
 	private JButton btnNext;
 	
-	private DBManagement dbManagement;
+	private DerbyDBManagement dbManagement;
 	private final String SHOW_WORD_BTN_MSG = "show word";
 	private final String outputImageFolder = "EnglishImages";
-	private final String dbTableName = "wordImage.xlsx";
-	private String dbSheetName;
 	private String action = "study";	
 	private final int IMAGE_WIDTH = 374;
-	private final int IMAGE_HEIGHT = 285;
+	private final int IMAGE_HEIGHT = 285;	
 	private int imageIndex;
-	private List<String> wordImages;
+	private List<List<String>> wordImages;
 	private JButton btn_showWord;
 	private String englishWord;
 	private int showWordBtnClickTime;	
@@ -60,6 +61,9 @@ public class EnglishImage {
 	private String[] months = new String[]{"month","01","02","03","04","05","06","07","08","09","10","11","12"};
 	private String[] days = new String[] {"day"};
 	private JButton btnGo;
+	private JTextArea txt_explain;
+	private JScrollPane jPanel_scrollInputExplain;
+	private JButton btn_saveExplain;
 
 	/**
 	 * Launch the application.
@@ -89,7 +93,7 @@ public class EnglishImage {
 	 */
 	private void initialize() {			
 		
-		dbManagement = new DBManagement(dbTableName);
+		dbManagement = new DerbyDBManagement();
 		
 		frame = new JFrame();
 		frame.setBounds(100, 100, 700, 600);		
@@ -98,19 +102,20 @@ public class EnglishImage {
 		JButton btnDatabaseUpdate = new JButton("Update Database");
 		btnDatabaseUpdate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				setButtonVisible(false, false);
-				if(dbManagement.dropTable()) {
+				setButtonVisible(false, false);				
+				String deleteSqlStr = "delete from english_images";
+				if(dbManagement.deleteRecords(deleteSqlStr, null)) {
 					updateImageInfor();					
 				}else {
 					JOptionPane.showMessageDialog(frame, "update table failed");
-				}				
+				}
 			}
 		});
-		btnDatabaseUpdate.setBounds(35, 49, 179, 29);
+		btnDatabaseUpdate.setBounds(37, 19, 179, 29);
 		frame.getContentPane().add(btnDatabaseUpdate);
 		
 		label_image = new JLabel("");
-		label_image.setBounds(141, 135, 374, 285);
+		label_image.setBounds(141, 98, 374, 285);
 		frame.getContentPane().add(label_image);
 		
 		btnPre = new JButton("pre");		
@@ -120,36 +125,38 @@ public class EnglishImage {
 				if(imageIndex == 0) {
 					imageIndex += wordImages.size();
 				}
-				String[] wordImage = wordImages.get((--imageIndex)%wordImages.size()).split(",", 2);
-				String imageUrl = wordImage[1];
+				List<String> wordImage = wordImages.get((--imageIndex)%wordImages.size());
+				String imageUrl = wordImage.get(1);				
 				label_image.setIcon(getScaledImage(imageUrl));				
-				btn_showWord.setText(wordImage[0]);
+				btn_showWord.setText(wordImage.get(0));
+				txt_explain.setText(wordImage.size()<3 ? "" : (wordImage.get(2)==null ? "" : wordImage.get(2)));
 			}
 		});
-		btnPre.setBounds(209, 513, 117, 29);
+		btnPre.setBounds(141, 531, 117, 29);
 		frame.getContentPane().add(btnPre);
 		
 		btnNext = new JButton("next");		
 		btnNext.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				resetShowMsgBtn();
-				String[] wordImage = new String[2];
+				List<String> wordImage = wordImages.get(0);
 				if(action.equals("study")) {
-					btn_showWord.setEnabled(false);
-					wordImage = wordImages.get((++imageIndex)%wordImages.size()).split(",", 2);
-					btn_showWord.setText(wordImage[0]);
+					btn_showWord.setEnabled(false);					
+					wordImage = wordImages.get((++imageIndex)%wordImages.size());
+					btn_showWord.setText(wordImage.get(0));
+					txt_explain.setText(wordImage.size()<3 ? "" : (wordImage.get(2)==null ? "" : wordImage.get(2)));
 				}else if(action.equals("review")) {
 					if((imageIndex+1) >= randomList.size()) {						
 						generateRandomArrar();
 					}
-					wordImage = wordImages.get(randomList.get(++imageIndex)).split(",", 2);
-					englishWord = wordImage[0];
+					wordImage = wordImages.get(randomList.get(++imageIndex));
+					englishWord = wordImage.get(0);
 				}				
-				String imageUrl = wordImage[1];
+				String imageUrl = wordImage.get(1);
 				label_image.setIcon(getScaledImage(imageUrl));				
 			}
 		});
-		btnNext.setBounds(338, 513, 117, 29);
+		btnNext.setBounds(377, 531, 117, 29);
 		frame.getContentPane().add(btnNext);
 		
 		setButtonVisible(false, false);
@@ -162,7 +169,7 @@ public class EnglishImage {
 				setButtonVisible(false, false);
 			}
 		});
-		rdbtnStudy.setBounds(314, 90, 79, 26);
+		rdbtnStudy.setBounds(315, 60, 79, 26);
 		frame.getContentPane().add(rdbtnStudy);
 		
 		JRadioButton rdbtnReview = new JRadioButton("review");
@@ -172,55 +179,57 @@ public class EnglishImage {
 				setButtonVisible(false, false);
 			}
 		});
-		rdbtnReview.setBounds(401, 90, 92, 26);
+		rdbtnReview.setBounds(402, 60, 92, 26);
 		frame.getContentPane().add(rdbtnReview);
 		
 		ButtonGroup group = new ButtonGroup();
 		group.add(rdbtnStudy);
 		group.add(rdbtnReview);
-		
-		
+				
 		
 		btnStart = new JButton("start");
 		btnStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {				
-				btn_showWord.setVisible(true);
+				
 				if(selectedYear != null && !selectedYear.isEmpty() && !selectedYear.equals(years[0])
 						&& selectedMonth != null && !selectedMonth.isEmpty() && !selectedMonth.equals(months[0])
 						&& selectedDay != null && !selectedDay.isEmpty() && !selectedDay.equals(days[0])) {
-					dbSheetName = selectedYear+"-"+selectedMonth+"-"+selectedDay;
-					dbManagement = new DBManagement(dbTableName, dbSheetName);
-					try {
-						wordImages = dbManagement.getRecords();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
+					btn_showWord.setVisible(true);
+					jPanel_scrollInputExplain.setVisible(true);
+					btn_saveExplain.setVisible(true);					
+					
+					loadDBData();
+					
 					generateRandomArrar();
-					String[] wordImage = new String[2];
-					if(action.equals("study")) {
-						setButtonVisible(true, true);
-						btn_showWord.setEnabled(false);
-						imageIndex = -1;
-						wordImage = wordImages.get((++imageIndex)%wordImages.size()).split(",", 2);
-						btn_showWord.setText(wordImage[0]);
-					}else if(action.equals("review")) {
-						resetShowMsgBtn();
-						setButtonVisible(false, true);		
-						btn_showWord.setEnabled(true);
-						if((imageIndex+1) >= randomList.size()) {						
-							generateRandomArrar();
-						}
-						wordImage = wordImages.get(randomList.get(++imageIndex)).split(",", 2);		
-						englishWord = wordImage[0];
-					}				
-					String imageUrl = wordImage[1];
-					label_image.setIcon(getScaledImage(imageUrl));
+					if(wordImages==null || wordImages.isEmpty()) {
+						JOptionPane.showMessageDialog(frame, "today has no English words");
+					}else {
+						List<String> wordImage = wordImages.get(0);
+						if(action.equals("study")) {
+							setButtonVisible(true, true);
+							btn_showWord.setEnabled(false);
+							imageIndex=0;
+							btn_showWord.setText(wordImage.get(0));
+							txt_explain.setText(wordImage.size()<3 ? "" : (wordImage.get(2)==null ? "" : wordImage.get(2)));
+						}else if(action.equals("review")) {
+							resetShowMsgBtn();
+							setButtonVisible(false, true);		
+							btn_showWord.setEnabled(true);
+							if((imageIndex+1) >= randomList.size()) {						
+								generateRandomArrar();
+							}
+							txt_explain.setText(wordImage.size()<3 ? "" : (wordImage.get(2)==null ? "" : wordImage.get(2)));	
+							englishWord = wordImage.get(0);
+						}				
+						String imageUrl = wordImage.get(1);
+						label_image.setIcon(getScaledImage(imageUrl));
+					}					
 				}else {
 					JOptionPane.showMessageDialog(frame, "please select valid year month and date");
 				}								
 			}
 		});
-		btnStart.setBounds(495, 90, 117, 29);
+		btnStart.setBounds(493, 60, 117, 29);
 		frame.getContentPane().add(btnStart);
 		
 		btn_showWord = new JButton(SHOW_WORD_BTN_MSG);
@@ -236,7 +245,7 @@ public class EnglishImage {
 				
 			}
 		});
-		btn_showWord.setBounds(198, 442, 264, 42);
+		btn_showWord.setBounds(196, 477, 264, 42);
 		frame.getContentPane().add(btn_showWord);
 		
 		comboBox_year = new JComboBox(years);
@@ -247,7 +256,7 @@ public class EnglishImage {
 				selectedYear = (String) ((JComboBox)e.getSource()).getSelectedItem();
 			}
 		});
-		comboBox_year.setBounds(304, 49, 100, 29);
+		comboBox_year.setBounds(305, 19, 100, 29);
 		frame.getContentPane().add(comboBox_year);
 		
 		comboBox_month = new JComboBox(months);
@@ -265,7 +274,7 @@ public class EnglishImage {
 				}
 			}
 		});
-		comboBox_month.setBounds(416, 49, 100, 29);
+		comboBox_month.setBounds(417, 19, 100, 29);
 		frame.getContentPane().add(comboBox_month);
 		
 		comboBox_day = new JComboBox(days);
@@ -276,8 +285,38 @@ public class EnglishImage {
 				selectedDay = (String) ((JComboBox)e.getSource()).getSelectedItem();				
 			}
 		});
-		comboBox_day.setBounds(530, 49, 100, 29);
+		comboBox_day.setBounds(529, 19, 100, 29);
 		frame.getContentPane().add(comboBox_day);									
+		
+		
+		txt_explain = new JTextArea();		
+		txt_explain.setFont(new Font("Lucida Grande", Font.PLAIN, 20));		
+		txt_explain.setLineWrap(true);
+		jPanel_scrollInputExplain = new JScrollPane(txt_explain);
+		jPanel_scrollInputExplain.setBounds(141, 395, 324, 70);
+		jPanel_scrollInputExplain.setVisible(false);
+		frame.getContentPane().add(jPanel_scrollInputExplain);
+		
+		btn_saveExplain = new JButton("save");
+		btn_saveExplain.setVisible(false);
+		btn_saveExplain.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {				
+				String wordExplanation = txt_explain.getText().trim();
+				System.out.println("output the explain text: "+wordExplanation);
+				String btnWord = btn_showWord.getText().trim();
+												
+				String updateSqlStr = "update english_images set explanation=? where word=?";
+				if(dbManagement.updateRecords(updateSqlStr, Arrays.asList(wordExplanation, btnWord))) {
+					loadDBData();
+					JOptionPane.showMessageDialog(frame, "database update succeed");
+				}else {
+					JOptionPane.showMessageDialog(frame, "database update failed");
+				}							
+			}
+		});
+		btn_saveExplain.setBounds(464, 395, 51, 70);
+		frame.getContentPane().add(btn_saveExplain);
+				
 		
 		File directory = new File(outputImageFolder);
 		if(!directory.exists()) {
@@ -296,32 +335,24 @@ public class EnglishImage {
 			for(File file : imageFolder.listFiles()) {
 				if(file.isDirectory()) {
 					//2018-07-20
-					dbSheetName = file.getName();
-					dbManagement = new DBManagement(dbTableName, dbSheetName);
+					String dateStr = file.getName();					
 					List<String[]> imageList = new ArrayList<String[]>();
 					for(File dayFile : file.listFiles()) {
 						String fileName = dayFile.getName();
 						if(fileName.contains("png")) {
 							String word = fileName.split("\\.")[0];									
-							String imageUrl = outputImageFolder+"/"+dbSheetName+"/"+fileName;
-							imageList.add(new String[]{word, imageUrl});
+							String imageUrl = outputImageFolder+"/"+dateStr+"/"+fileName;
+							String dateArr[] = dateStr.split("-");							
+							imageList.add(new String[]{word, imageUrl, "", dateArr[0], dateArr[1], dateArr[2]});
 						}	
 					}
-					if(imageList.size() > 0) {						
-						for(String[] imageRecord : imageList) {
-							try {
-								if(!dbManagement.insertRecord(imageRecord)) {
-									tableUpdate = false;									
-									break;
-								}
-							} catch (IOException e1) {								
-								e1.printStackTrace();
-							}
+					if(imageList.size() > 0) {
+						String insertSqlStr = "insert into english_images values (?, ?, ?, ?, ?, ?)";
+						if(!dbManagement.insertRecords(insertSqlStr, imageList)) {
+							tableUpdate = false;
+							break;
 						}						
-					}
-					if(!tableUpdate) {
-						break;
-					}
+					}					
 				}													
 			}
 			if(tableUpdate) {
@@ -389,4 +420,9 @@ public class EnglishImage {
 	    	days[i] = String.valueOf(i);
 	    }
 	}
+	
+	private void loadDBData() {
+		String queryStr = "select word, image_url, explanation from english_images where date_year=? and date_month=? and date_day=?";
+		wordImages = dbManagement.searchRecord(queryStr, Arrays.asList(selectedYear, selectedMonth, selectedDay));		
+	} 		
 }
